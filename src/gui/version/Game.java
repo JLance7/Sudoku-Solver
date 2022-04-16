@@ -1,14 +1,12 @@
 package gui.version;
 
 import javax.swing.*;
-import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -22,7 +20,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     private static final Color COOL_BLUE =  new Color(0x2F98DE);
     private Cell[][] cells;
     JPanel middle;
-    ascii.version.Game controller;
+
 
     JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -68,7 +66,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     public void addTopComponents(JPanel top){
         JLabel label = new JLabel();
         label.setText("Sudoku!");
-        label.setFont(new Font("Bell MT", Font.PLAIN, 60));
+        label.setFont(new Font("Courier New", Font.PLAIN, 60));
         label.setForeground(Color.white);
         label.setHorizontalAlignment(JLabel.CENTER);
         top.add(label, BorderLayout.NORTH);
@@ -80,13 +78,13 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         submitBtn.addActionListener(this);
         submitBtn.setFocusable(false);
         submitBtn.setBackground(new Color(7, 239, 39));
-        submitBtn.setFont(new Font("Arial", Font.BOLD, (int)width/42));
+        submitBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
         submitBtn.setBorder(BorderFactory.createLineBorder(new Color(6, 142, 24), 1));
         buttonPanel.add(submitBtn);
 
         clearBtn = new JButton("Clear");
         clearBtn.addActionListener(this);
-        clearBtn.setFont(new Font("Arial", Font.BOLD, (int)width/42));
+        clearBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
         clearBtn.setBackground(Color.white);
         clearBtn.setFocusable(false);
         clearBtn.setBorder(BorderFactory.createLineBorder(new Color(205, 169, 229), 1));
@@ -94,7 +92,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
 
         solveBtn = new JButton("Solve");
         solveBtn.addActionListener(this);
-        solveBtn.setFont(new Font("Arial", Font.BOLD, (int)width/42));
+        solveBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
         solveBtn.setBackground(new Color(195, 163, 232));
         solveBtn.setFocusable(false);
         solveBtn.setBorder(BorderFactory.createLineBorder(new Color(144, 95, 201), 1));
@@ -102,11 +100,13 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
 
         newPuzzleBtn = new JButton("New Puzzle");
         newPuzzleBtn.addActionListener(this);
-        newPuzzleBtn.setFont(new Font("Arial", Font.BOLD, (int)width/42));
+        newPuzzleBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
         newPuzzleBtn.setBackground(new Color(243, 222, 40));
         newPuzzleBtn.setFocusable(false);
         newPuzzleBtn.setBorder(BorderFactory.createLineBorder(new Color(156, 142, 22), 1));
         buttonPanel.add(newPuzzleBtn);
+
+
 
         top.add(buttonPanel, BorderLayout.CENTER);
     }
@@ -126,43 +126,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         }
     }
 
-    public void resizeText(JButton button){
-        double width = this.getWidth();
-//        System.out.println(width);
-        if (width <= 1000)
-            button.setFont(new Font("Arial", Font.BOLD, (int) width / 42));
-        else
-            button.setFont(new Font("Arial", Font.BOLD, (int) width / 60));
-        this.getContentPane().revalidate();
-    }
-
-    //takes in random puzzle sequence and sets the cells equal to the filled in numbers
-    public void setRandomBoard(String randomBoard){
-        int firstEditableRowIndex = 0;
-        int firstEditableColIndex = 0;
-        boolean getFirstIndex = true;
-        int k=0;
-        for (int i=0; i<ROW_SIZE; i++){
-            for (int j=0; j<COL_SIZE; j++){
-                int value = Character.getNumericValue(randomBoard.charAt(k));
-                if (value != 0){
-                    cells[i][j].getTextField().setText(String.valueOf(value));
-                    cells[i][j].getTextField().setEditable(false);
-                    cells[i][j].getTextField().setForeground(Color.BLUE);
-                }
-                else {
-                    if (getFirstIndex){
-                        firstEditableRowIndex = i;
-                        firstEditableColIndex = j;
-                        getFirstIndex = false;
-                    }
-                }
-                k++;
-            }
-        }
-        cells[firstEditableRowIndex][firstEditableColIndex].getTextField().requestFocus();
-    }
-
+    //get random puzzle string from text file
     public String getPuzzle(){
         //unsolved sudoku boards text file taken from http://www.kokolikoko.com/sudoku/
         int numOfLines = 10000;
@@ -192,11 +156,39 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         return randomBoard;
     }
 
+    //takes in random puzzle sequence and sets the cells equal to the filled in numbers
+    public void setRandomBoard(String randomBoard){
+        int firstEditableRowIndex = 0;
+        int firstEditableColIndex = 0;
+        boolean getFirstIndex = true;
+        int k=0;
+        for (int i=0; i<ROW_SIZE; i++){
+            for (int j=0; j<COL_SIZE; j++){
+                int value = Character.getNumericValue(randomBoard.charAt(k));
+                if (value != 0){
+                    cells[i][j].getTextField().setText(String.valueOf(value));
+                    cells[i][j].getTextField().setEditable(false);
+                    cells[i][j].getTextField().setForeground(Color.BLUE);
+                }
+                else {
+                    if (getFirstIndex){
+                        firstEditableRowIndex = i;
+                        firstEditableColIndex = j;
+                        getFirstIndex = false;
+                    }
+                }
+                k++;
+            }
+        }
+        cells[firstEditableRowIndex][firstEditableColIndex].getTextField().requestFocus();
+    }
+
+    //backtracking through recursion solution
     public boolean solveBoard(){
         for (int i=0; i<ROW_SIZE; i++){
             for (int j=0; j<COL_SIZE; j++){
                 //if it is empty
-                if (cells[i][j].getTextField().getText() == "" || cells[i][j].getTextField().getText() == null){
+                if (cells[i][j].getTextField().getText().equals("") || cells[i][j].getTextField().getText().isEmpty()){
                     for (int n=1; n<10; n++){
                         if (isValidPlacement(n, i, j)){
                             cells[i][j].getTextField().setText(String.valueOf(n));
@@ -230,34 +222,47 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     //returns false if number given is in row of board
     public boolean inRow(int value, int row){
         for (int j=0; j<ROW_SIZE; j++){
-            if (cells[row][j].getTextField().getText() == String.valueOf(value))
+            if (cells[row][j].getTextField().getText().equals(String.valueOf(value)))
                 return true;
         }
+
         return false;
     }
 
     //returns false if number given is in column of board
     public boolean inColumn(int value, int col){
         for (int i=0; i<COL_SIZE; i++){
-            if (cells[i][col].getTextField().getText() == String.valueOf(value))
+            if (cells[i][col].getTextField().getText().equals(String.valueOf(value)))
                 return true;
         }
+
         return false;
     }
 
     //returns false if number given is in 3x3 box of board
     public boolean inBox(int value, int row, int col) {
         //gets upper left box index
-        int upperLeftBoxRow = ((int) row/3) * 3;
-        int upperLeftBoxCol = ((int) col/3) * 3;
+        int upperLeftBoxRow = ( (int) row/3) * 3;
+        int upperLeftBoxCol = ( (int) col/3) * 3;
 
         for (int i = upperLeftBoxRow; i < upperLeftBoxRow + 3; i++) {
             for (int j = upperLeftBoxCol; j < upperLeftBoxCol + 3; j++) {
-                if (cells[i][j].getTextField().getText() == String.valueOf(value))
+                if (cells[i][j].getTextField().getText().equals(String.valueOf(value)))
                     return true;
             }
         }
+
         return false;
+    }
+
+    public void resizeText(JButton button){
+        double width = this.getWidth();
+//        System.out.println(width);
+        if (width <= 1000)
+            button.setFont(new Font("Courier New", Font.BOLD, (int) width / 42));
+        else
+            button.setFont(new Font("Courier New", Font.BOLD, (int) width / 60));
+        this.getContentPane().revalidate();
     }
 
     @Override
@@ -266,6 +271,16 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         resizeText(clearBtn);
         resizeText(newPuzzleBtn);
         resizeText(solveBtn);
+        //resize cell text
+        for (int i=0; i< ROW_SIZE; i++){
+            for (int j=0; j< COL_SIZE; j++){
+                Cell cell = cells[i][j];
+                int width = cell.getTextField().getWidth();
+                cell.getTextField().setFont(new Font("Roboto", Font.PLAIN, width/2));
+            }
+        }
+
+        repaint();
     }
 
     @Override
@@ -277,24 +292,85 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     @Override
     public void componentHidden(ComponentEvent e) { }
 
+    //buttons
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == submitBtn){
-
+            removeListeners();
+            boolean win = checkWin();
+            if (win){
+                System.out.println("You solved it!");
+            }
+            else {
+                System.out.println("Not a correct solution");
+            }
+            addListeners();
         }
         if (e.getSource() == clearBtn){
-           clear(false);
+            removeListeners();
+            clear(false);
+            addListeners();
         }
         if (e.getSource() == solveBtn){
+            removeListeners();
             clear(false);
             solveBoard();
-            this.getContentPane().revalidate();
+            for (int i=0; i<ROW_SIZE; i++){
+                for (int j=0; j<COL_SIZE; j++){
+                    cells[i][j].getTextField().setEditable(false);
+                }
+            }
+            addListeners();
+            //this.getContentPane().revalidate();
         }
         if (e.getSource() == newPuzzleBtn){
+            removeListeners();
             clear(true);
-            String randomBoard = controller.getPuzzle();
+            for (int i=0; i<ROW_SIZE; i++){
+                for (int j=0; j<COL_SIZE; j++){
+                    cells[i][j].getTextField().setEditable(true);
+                }
+            }
+            String randomBoard = getPuzzle();
             setRandomBoard(randomBoard);
+            addListeners();
         }
+        validate();
+        repaint();
+    }
+
+    public void removeListeners(){
+        submitBtn.removeActionListener(this);
+        clearBtn.removeActionListener(this);
+        solveBtn.removeActionListener(this);
+        newPuzzleBtn.removeActionListener(this);
+    }
+
+    public void addListeners(){
+        submitBtn.addActionListener(this);
+        clearBtn.addActionListener(this);
+        solveBtn.addActionListener(this);
+        newPuzzleBtn.addActionListener(this);
+    }
+
+    @Override
+    public void paint(Graphics g){
+        Graphics2D g2 = (Graphics2D) g;
+        super.paint(g2);
+
+        int width = middle.getWidth();
+        int height = middle.getHeight();
+        int screenHeight = (int)screenSize.getHeight();
+        int screenWidth = (int)screenSize.getWidth();
+        //System.out.println(width);
+        g2.setStroke(new BasicStroke(5));
+
+        //vertical lines
+        g2.drawLine(width/3 + 8, 145, width/3 + 8, screenHeight);
+        g2.drawLine(width/3 * 2 + 8, 145, width/3 * 2 + 8, screenHeight);
+
+        //horizontal lines
+        g2.drawLine(0, screenHeight/3 + 8 + 145, screenWidth, screenHeight/3 + 8 + 145);
     }
 
     public void clear(boolean fullClear){
@@ -326,5 +402,20 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         middle.setVisible(true);
         cells[firstEditableRowIndex][firstEditableColIndex].getTextField().requestFocus();
         this.getContentPane().revalidate();
+    }
+
+    public boolean checkWin(){
+        for (int i=0; i<ROW_SIZE; i++){
+            for (int j=0; j<COL_SIZE; j++){
+                int value = Integer.parseInt(cells[i][j].getTextField().getText());
+                if (isValidPlacement(value, i, j)){
+                    continue;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }
