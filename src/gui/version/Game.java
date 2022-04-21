@@ -2,10 +2,7 @@ package gui.version;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.event.*;
 import java.io.File;
 import java.util.Random;
 import java.util.Scanner;
@@ -16,18 +13,19 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     private static final int COL_SIZE = 9;
     private static final int SCREEN_W = 720;
     private static final int SCREEN_H = 720;
-    int[][] board = new int[ROW_SIZE][COL_SIZE];
     private static final Color COOL_BLUE =  new Color(0x2F98DE);
     private Cell[][] cells;
-    JPanel middle;
+    private JPanel middle;
 
 
     JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     double width = screenSize.getWidth();
+    double height = screenSize.getHeight();
 
 
     public Game(){
+        System.setProperty("sun.awt.noerasebackground", "true");
         //setup frame
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
@@ -122,6 +120,35 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                 cell = new Cell();
                 cells[i][j] = cell;
                 middle.add(cell);
+
+                cell.getTextField().addFocusListener(new FocusListener() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        repaint();
+                    }
+                    @Override
+                    public void focusLost(FocusEvent e) {
+                        repaint();
+                    }
+                });
+                cell.getTextField().addKeyListener(new KeyListener() {
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+                        validate();
+                        repaint();
+//                        if (e.getKeyChar() == KeyEvent.VK_SPACE)
+                    }
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        validate();
+                        repaint();
+                    }
+                    @Override
+                    public void keyReleased(KeyEvent e) {
+                        validate();
+                        repaint();
+                    }
+                });
             }
         }
     }
@@ -222,18 +249,19 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     //returns false if number given is in row of board
     public boolean inRow(int value, int row){
         for (int j=0; j<ROW_SIZE; j++){
-            if (cells[row][j].getTextField().getText().equals(String.valueOf(value)))
+            if (cells[row][j].getTextField().getText().equals(String.valueOf(value))){
                 return true;
+            }
         }
-
         return false;
     }
 
     //returns false if number given is in column of board
     public boolean inColumn(int value, int col){
         for (int i=0; i<COL_SIZE; i++){
-            if (cells[i][col].getTextField().getText().equals(String.valueOf(value)))
+            if (cells[i][col].getTextField().getText().equals(String.valueOf(value))){
                 return true;
+            }
         }
 
         return false;
@@ -247,11 +275,11 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
 
         for (int i = upperLeftBoxRow; i < upperLeftBoxRow + 3; i++) {
             for (int j = upperLeftBoxCol; j < upperLeftBoxCol + 3; j++) {
-                if (cells[i][j].getTextField().getText().equals(String.valueOf(value)))
+                if (cells[i][j].getTextField().getText().equals(String.valueOf(value))){
                     return true;
+                }
             }
         }
-
         return false;
     }
 
@@ -262,7 +290,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
             button.setFont(new Font("Courier New", Font.BOLD, (int) width / 42));
         else
             button.setFont(new Font("Courier New", Font.BOLD, (int) width / 60));
-        this.getContentPane().revalidate();
+//        this.getContentPane().revalidate();
     }
 
     @Override
@@ -279,8 +307,6 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                 cell.getTextField().setFont(new Font("Roboto", Font.PLAIN, width/2));
             }
         }
-
-        repaint();
     }
 
     @Override
@@ -295,14 +321,17 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     //buttons
     @Override
     public void actionPerformed(ActionEvent e) {
+        int frameWidth = this.getWidth();
+        int frameHeight = this.getHeight();
         if (e.getSource() == submitBtn){
             removeListeners();
             boolean win = checkWin();
             if (win){
-                System.out.println("You solved it!");
+                JOptionPane.showMessageDialog(this, "You win!", "Win", JOptionPane.PLAIN_MESSAGE);
+                newPuzzleBtn.doClick();
             }
             else {
-                System.out.println("Not a correct solution");
+                JOptionPane.showMessageDialog(this, "Incorrect Solution", "Incorrect", JOptionPane.PLAIN_MESSAGE);
             }
             addListeners();
         }
@@ -321,7 +350,8 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                 }
             }
             addListeners();
-            //this.getContentPane().revalidate();
+            this.setSize(frameWidth + 1, frameHeight + 1);
+            this.setSize(frameWidth - 1, frameHeight - 1);
         }
         if (e.getSource() == newPuzzleBtn){
             removeListeners();
@@ -335,6 +365,9 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
             setRandomBoard(randomBoard);
             addListeners();
         }
+
+        this.setSize(frameWidth + 1, frameHeight + 1);
+        this.setSize(frameWidth - 1, frameHeight - 1);
         validate();
         repaint();
     }
@@ -366,11 +399,12 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         g2.setStroke(new BasicStroke(5));
 
         //vertical lines
-        g2.drawLine(width/3 + 8, 145, width/3 + 8, screenHeight);
-        g2.drawLine(width/3 * 2 + 8, 145, width/3 * 2 + 8, screenHeight);
+        g2.drawLine(width/3 + 8, 143, width/3 + 8, screenHeight);
+        g2.drawLine(width/3 * 2 + 8, 143, width/3 * 2 + 8, screenHeight);
 
         //horizontal lines
-        g2.drawLine(0, screenHeight/3 + 8 + 145, screenWidth, screenHeight/3 + 8 + 145);
+        g2.drawLine(0, height/3 - 8 + 148, screenWidth, height/3 - 8 + 148);
+        g2.drawLine(0, (height/3) * 2 -8 + 148, screenWidth, (height/3) * 2 -8 + 148);
     }
 
     public void clear(boolean fullClear){
@@ -407,8 +441,10 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     public boolean checkWin(){
         for (int i=0; i<ROW_SIZE; i++){
             for (int j=0; j<COL_SIZE; j++){
+                if (cells[i][j].getTextField().getText().equals(""))
+                    return false;
                 int value = Integer.parseInt(cells[i][j].getTextField().getText());
-                if (isValidPlacement(value, i, j)){
+                if (isValidPlacementSubmit(value, i, j)){
                     continue;
                 }
                 else {
@@ -416,6 +452,46 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                 }
             }
         }
-        return false;
+        return true;
+    }
+
+    public boolean isValidPlacementSubmit(int value, int row, int col){
+        //check row only has one of the same value
+        int count = 0;
+        for (int j=0; j<col; j++){
+            if (cells[row][j].getTextField().getText().equals(String.valueOf(value))){
+                count++;
+            }
+            if (count == 2)
+                return false;
+        }
+
+        count = 0;
+        //check col only has one of the same value
+        for (int i=0; i<col; i++){
+            if (cells[i][col].getTextField().getText().equals(String.valueOf(value))){
+                count++;
+            }
+            if (count == 2)
+                return false;
+        }
+
+        count = 0;
+        //check box only has one of the same value
+        //gets upper left box index
+        int upperLeftBoxRow = ( (int) row/3) * 3;
+        int upperLeftBoxCol = ( (int) col/3) * 3;
+
+        for (int i = upperLeftBoxRow; i < upperLeftBoxRow + 3; i++) {
+            for (int j = upperLeftBoxCol; j < upperLeftBoxCol + 3; j++) {
+                if (cells[i][j].getTextField().getText().equals(String.valueOf(value))){
+                    count++;
+                }
+                if (count == 2)
+                    return false;
+            }
+        }
+
+        return true;
     }
 }
