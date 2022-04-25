@@ -23,7 +23,6 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
 
 
     JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn, fullClearBtn;
-    JCheckBox visualize;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     double width = screenSize.getWidth();
     double height = screenSize.getHeight();
@@ -116,12 +115,6 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         solveBtn.setBorder(BorderFactory.createLineBorder(new Color(144, 95, 201), 1));
         buttonPanel.add(solveBtn);
 
-        visualize = new JCheckBox();
-        visualize.addActionListener(this);
-        visualize.setText("<html>Visualize<br/>Backtracking</html>");
-        visualize.setOpaque(false);
-        visualize.setFocusable(false);
-        buttonPanel.add(visualize);
 
         top.add(buttonPanel, BorderLayout.CENTER);
     }
@@ -270,8 +263,10 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         cells[firstEditableRowIndex][firstEditableColIndex].getTextField().requestFocus();
     }
 
+
     //backtracking through recursion solution
     public boolean solveBoard(){
+        Timer timer, timer2, clearTimer, clearTimer2;
         for (int i=0; i<ROW_SIZE; i++){
             for (int j=0; j<COL_SIZE; j++){
                 //if it is empty
@@ -279,14 +274,17 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                     for (int n=1; n<10; n++){
                         if (isValidPlacement(n, i, j)){
                             cells[i][j].getTextField().setText(String.valueOf(n));
+
                             boolean successfulReturn = solveBoard();
                             if (successfulReturn){
+                                successfulReturn = false;
                                 return true;
                             }
                             else {
                                 //if a next cell can't be solved reset it and try another number
                                 cells[i][j].getTextField().setText("");
                             }
+
                         }
 
                     }
@@ -360,7 +358,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         resizeText(newPuzzleBtn);
         resizeText(solveBtn);
         resizeText(fullClearBtn);
-        visualize.setFont(new Font("Courier New", Font.BOLD, (int) width / 150));
+
         //resize cell text
         for (int i=0; i< ROW_SIZE; i++){
             for (int j=0; j< COL_SIZE; j++){
@@ -431,8 +429,6 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
                 }
             }
             addListeners();
-            this.setSize(frameWidth + 1, frameHeight + 1);
-            this.setSize(frameWidth - 1, frameHeight - 1);
         }
         if (e.getSource() == newPuzzleBtn){
             removeListeners();
@@ -467,6 +463,8 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         clearBtn.removeActionListener(this);
         solveBtn.removeActionListener(this);
         newPuzzleBtn.removeActionListener(this);
+        fullClearBtn.removeActionListener(this);
+
     }
 
     public void addListeners(){
@@ -474,6 +472,8 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         clearBtn.addActionListener(this);
         solveBtn.addActionListener(this);
         newPuzzleBtn.addActionListener(this);
+        fullClearBtn.addActionListener(this);
+
     }
 
     @Override
