@@ -2,10 +2,12 @@
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
-/../../../../../../../:\Users\joshu\IdeaProjects\swing stuff\Sudoku\.idea/dataSources/
+/../../../../../../../:\Users\joshu\IdeaProjects\swing stuff\JUinit tutorial\.idea/dataSources/
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
 
+.idea
 *.iml
-out
+out/
+META-INF

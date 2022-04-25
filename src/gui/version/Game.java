@@ -4,6 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -18,20 +22,20 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     private JPanel middle;
 
 
-    JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn;
+    JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn, fullClearBtn;
+    JCheckBox visualize;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     double width = screenSize.getWidth();
     double height = screenSize.getHeight();
 
 
     public Game(){
-        System.setProperty("sun.awt.noerasebackground", "true");
         //setup frame
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
         this.setSize(720, 720);
         this.setTitle("Sudoku Solver");
-        ImageIcon icon = new ImageIcon("resources/gameIcon.png");
+        ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("gameIcon.png"));
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(600, 600));
 
@@ -45,15 +49,15 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
 
         //middle cells
         middle = new JPanel();
-        middle.setLayout(new GridLayout(ROW_SIZE, COL_SIZE, 2, 2));
-        middle.setBackground(Color.blue);
+        middle.setLayout(new GridLayout(3, 3, 5, 5));
+        middle.setBackground(Color.black);
         addMiddleComponents(middle);
+        middle.setMaximumSize(new Dimension(800, 800));
         this.add(middle, BorderLayout.CENTER);
 
         //logic
         String randomBoard = getPuzzle();
         setRandomBoard(randomBoard);
-
 
         //finish setup
         this.addComponentListener(this);
@@ -69,7 +73,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         label.setHorizontalAlignment(JLabel.CENTER);
         top.add(label, BorderLayout.NORTH);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 10, 10));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 5, 10, 10));
         buttonPanel.setBackground(COOL_BLUE);
 
         submitBtn = new JButton("Submit");
@@ -88,6 +92,22 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         clearBtn.setBorder(BorderFactory.createLineBorder(new Color(205, 169, 229), 1));
         buttonPanel.add(clearBtn);
 
+        newPuzzleBtn = new JButton("New Puzzle");
+        newPuzzleBtn.addActionListener(this);
+        newPuzzleBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/55));
+        newPuzzleBtn.setBackground(new Color(243, 222, 40));
+        newPuzzleBtn.setFocusable(false);
+        newPuzzleBtn.setBorder(BorderFactory.createLineBorder(new Color(156, 142, 22), 1));
+        buttonPanel.add(newPuzzleBtn);
+
+        fullClearBtn = new JButton("Full Clear");
+        fullClearBtn.addActionListener(this);
+        fullClearBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/120));
+        fullClearBtn.setFocusable(false);
+        fullClearBtn.setBackground(new Color(34, 236, 213));
+        fullClearBtn.setBorder(BorderFactory.createLineBorder(new Color(43, 219, 219), 1));
+        buttonPanel.add(fullClearBtn);
+
         solveBtn = new JButton("Solve");
         solveBtn.addActionListener(this);
         solveBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
@@ -96,61 +116,101 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         solveBtn.setBorder(BorderFactory.createLineBorder(new Color(144, 95, 201), 1));
         buttonPanel.add(solveBtn);
 
-        newPuzzleBtn = new JButton("New Puzzle");
-        newPuzzleBtn.addActionListener(this);
-        newPuzzleBtn.setFont(new Font("Courier New", Font.BOLD, (int)width/42));
-        newPuzzleBtn.setBackground(new Color(243, 222, 40));
-        newPuzzleBtn.setFocusable(false);
-        newPuzzleBtn.setBorder(BorderFactory.createLineBorder(new Color(156, 142, 22), 1));
-        buttonPanel.add(newPuzzleBtn);
-
-
+        visualize = new JCheckBox();
+        visualize.addActionListener(this);
+        visualize.setText("<html>Visualize<br/>Backtracking</html>");
+        visualize.setOpaque(false);
+        visualize.setFocusable(false);
+        buttonPanel.add(visualize);
 
         top.add(buttonPanel, BorderLayout.CENTER);
     }
 
     public void addMiddleComponents(JPanel middle){
         //add cells
+        JPanel upperLeft = new JPanel();
+        upperLeft.setLayout(new GridLayout(3, 3, 2, 2));
+        upperLeft.setBackground(Color.blue);
+        JPanel upperMiddle = new JPanel();
+        upperMiddle.setLayout(new GridLayout(3, 3, 2, 2));
+        upperMiddle.setBackground(Color.blue);
+        JPanel upperRight = new JPanel();
+        upperRight.setLayout(new GridLayout(3, 3, 2, 2));
+        upperRight.setBackground(Color.blue);
+
+        JPanel middleLeft = new JPanel();
+        middleLeft.setLayout(new GridLayout(3, 3, 2, 2));
+        middleLeft.setBackground(Color.blue);
+        JPanel middleMiddle = new JPanel();
+        middleMiddle.setLayout(new GridLayout(3, 3, 2, 2));
+        middleMiddle.setBackground(Color.blue);
+        JPanel middleRight = new JPanel();
+        middleRight.setLayout(new GridLayout(3, 3, 2, 2));
+        middleRight.setBackground(Color.blue);
+
+        JPanel lowerLeft = new JPanel();
+        lowerLeft.setLayout(new GridLayout(3, 3, 2, 2));
+        lowerLeft.setBackground(Color.blue);
+        JPanel lowerMiddle = new JPanel();
+        lowerMiddle.setLayout(new GridLayout(3, 3, 2, 2));
+        lowerMiddle.setBackground(Color.blue);
+        JPanel lowerRight = new JPanel();
+        lowerRight.setLayout(new GridLayout(3, 3, 2, 2));
+        lowerRight.setBackground(Color.blue);
+
+
+        int frameWidth = this.getWidth();
+        int frameHeight = this.getHeight();
         int x=0;
         int y=0;
         Cell cell;
+        middle.setDoubleBuffered(true);
         cells = new Cell[ROW_SIZE][COL_SIZE];
+        //add jpanel cells each to one of the 9 possible 3x3 panels
         for (int i=0; i<ROW_SIZE; i++){
             for (int j=0; j<COL_SIZE; j++){
                 cell = new Cell();
                 cells[i][j] = cell;
-                middle.add(cell);
-
-                cell.getTextField().addFocusListener(new FocusListener() {
-                    @Override
-                    public void focusGained(FocusEvent e) {
-                        repaint();
-                    }
-                    @Override
-                    public void focusLost(FocusEvent e) {
-                        repaint();
-                    }
-                });
-                cell.getTextField().addKeyListener(new KeyListener() {
-                    @Override
-                    public void keyTyped(KeyEvent e) {
-                        validate();
-                        repaint();
-//                        if (e.getKeyChar() == KeyEvent.VK_SPACE)
-                    }
-                    @Override
-                    public void keyPressed(KeyEvent e) {
-                        validate();
-                        repaint();
-                    }
-                    @Override
-                    public void keyReleased(KeyEvent e) {
-                        validate();
-                        repaint();
-                    }
-                });
+                if ( (i >= 0 && i <= 2) && (j >= 0 && j <= 2) ){
+                    upperLeft.add(cell);
+                }
+                if ( (i >= 0  && i <= 2) && (j > 2 && j <= 5) ){
+                    upperMiddle.add(cell);
+                }
+                if ( (i >= 0  && i <= 2) && (j > 5 && j <= 8)){
+                    upperRight.add(cell);
+                }
+                //second row
+                if ( (i > 2 && i <= 5) && (j >= 0 && j <= 2) ){
+                    middleLeft.add(cell);
+                }
+                if ( (i > 2  && i <= 5) && (j > 2 && j <= 5) ){
+                    middleMiddle.add(cell);
+                }
+                if ( (i > 2  && i <= 5) && (j > 5 && j <= 8) ){
+                    middleRight.add(cell);
+                }
+                //third row
+                if ( (i > 5 && i <= 8) && (j >= 0 && j <= 2) ){
+                    lowerLeft.add(cell);
+                }
+                if ( (i > 5 && i <= 8) && (j > 2 && j <= 5) ){
+                    lowerMiddle.add(cell);
+                }
+                if ( (i > 5 && i <= 8) && (j > 5 && j <= 8) ){
+                    lowerRight.add(cell);
+                }
             }
         }
+        middle.add(upperLeft);
+        middle.add(upperMiddle);
+        middle.add(upperRight);
+        middle.add(middleLeft);
+        middle.add(middleMiddle);
+        middle.add(middleRight);
+        middle.add(lowerLeft);
+        middle.add(lowerMiddle);
+        middle.add(lowerRight);
     }
 
     //get random puzzle string from text file
@@ -299,6 +359,8 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         resizeText(clearBtn);
         resizeText(newPuzzleBtn);
         resizeText(solveBtn);
+        resizeText(fullClearBtn);
+        visualize.setFont(new Font("Courier New", Font.BOLD, (int) width / 150));
         //resize cell text
         for (int i=0; i< ROW_SIZE; i++){
             for (int j=0; j< COL_SIZE; j++){
@@ -326,12 +388,31 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         if (e.getSource() == submitBtn){
             removeListeners();
             boolean win = checkWin();
+            JLabel label = new JLabel();
+            label.setText("You win!");
+            JLabel label2 = new JLabel();
+            label2.setText("Incorrect solution");
             if (win){
-                JOptionPane.showMessageDialog(this, "You win!", "Win", JOptionPane.PLAIN_MESSAGE);
-                newPuzzleBtn.doClick();
+                JOptionPane optionPane = new JOptionPane(label, JOptionPane.PLAIN_MESSAGE)
+                {
+                    @Override
+                    public void selectInitialValue()
+                    {
+                        label.requestFocus();
+                    }
+                };
+                optionPane.createDialog(null, "Victory").setVisible(true);
             }
             else {
-                JOptionPane.showMessageDialog(this, "Incorrect Solution", "Incorrect", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane optionPane = new JOptionPane(label2, JOptionPane.PLAIN_MESSAGE)
+                {
+                    @Override
+                    public void selectInitialValue()
+                    {
+                        label2.requestFocus();
+                    }
+                };
+                optionPane.createDialog(null, "Not quite").setVisible(true);
             }
             addListeners();
         }
@@ -365,11 +446,20 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
             setRandomBoard(randomBoard);
             addListeners();
         }
+        if (e.getSource() == fullClearBtn){
+            middle.setVisible(false);
+            for (int i=0; i<ROW_SIZE; i++){
+                for (int j=0; j<COL_SIZE; j++){
+                    cells[i][j].getTextField().setEditable(true);
+                    cells[i][j].getTextField().setText("");
+                }
+            }
+            middle.setVisible(true);
+        }
 
-        this.setSize(frameWidth + 1, frameHeight + 1);
-        this.setSize(frameWidth - 1, frameHeight - 1);
-        validate();
-        repaint();
+//        this.setSize(frameWidth + 1, frameHeight + 1);
+//        this.setSize(frameWidth - 1, frameHeight - 1);
+
     }
 
     public void removeListeners(){
@@ -399,12 +489,12 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         g2.setStroke(new BasicStroke(5));
 
         //vertical lines
-        g2.drawLine(width/3 + 8, 143, width/3 + 8, screenHeight);
-        g2.drawLine(width/3 * 2 + 8, 143, width/3 * 2 + 8, screenHeight);
-
-        //horizontal lines
-        g2.drawLine(0, height/3 - 8 + 148, screenWidth, height/3 - 8 + 148);
-        g2.drawLine(0, (height/3) * 2 -8 + 148, screenWidth, (height/3) * 2 -8 + 148);
+//        g2.drawLine(width/3 + 8, 143, width/3 + 8, screenHeight);
+//        g2.drawLine(width/3 * 2 + 8, 143, width/3 * 2 + 8, screenHeight);
+//
+//        //horizontal lines
+//        g2.drawLine(0, height/3 - 8 + 148, screenWidth, height/3 - 8 + 148);
+//        g2.drawLine(0, (height/3) * 2 -8 + 148, screenWidth, (height/3) * 2 -8 + 148);
     }
 
     public void clear(boolean fullClear){
