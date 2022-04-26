@@ -3,11 +3,7 @@ package gui.version;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -20,13 +16,9 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
     private static final Color COOL_BLUE =  new Color(0x2F98DE);
     private Cell[][] cells;
     private JPanel middle;
-
-
     JButton submitBtn, clearBtn, newPuzzleBtn, solveBtn, fullClearBtn;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     double width = screenSize.getWidth();
-    double height = screenSize.getHeight();
-
 
     public Game(){
         //setup frame
@@ -37,6 +29,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         ImageIcon icon = new ImageIcon(getClass().getClassLoader().getResource("gameIcon.png"));
         this.setIconImage(icon.getImage());
         this.setMinimumSize(new Dimension(600, 600));
+
 
         //Add components
         //top text views
@@ -53,6 +46,7 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         addMiddleComponents(middle);
         middle.setMaximumSize(new Dimension(800, 800));
         this.add(middle, BorderLayout.CENTER);
+
 
         //logic
         String randomBoard = getPuzzle();
@@ -213,8 +207,9 @@ public class Game extends JFrame implements ComponentListener, ActionListener {
         String randomBoard = "";
 
         try {
-            File file = new File("resources/boards.txt");
-            Scanner reader = new Scanner(file);
+            InputStream input = getClass().getClassLoader().getResourceAsStream("boards.txt");
+            //File file = new File(String.valueOf(input));
+            Scanner reader = new Scanner(input);
             Random random = new Random();
             int randomLine = random.nextInt((numOfLines - 1) + 1) + 1;
             //System.out.println("Random Line is: " + randomLine);
